@@ -71,7 +71,6 @@ class WatchAddress extends React.Component {
 
   componentDidUpdate = async (prevProps, prevState) => {
     if (prevState.UTXOs !== this.state.UTXOs) {
-      console.log('state changed  ', this.state.UTXOs);
       let UTXOs = await this.getUTXOs(this.state.UTXOs);
       if (this.state.satoshis) {
         this.getValue(this.state.satoshis);
@@ -90,8 +89,6 @@ class WatchAddress extends React.Component {
     bitsocket.onmessage = e => {
       let resp = JSON.parse(e.data);
       if (resp.data.length >= 1) {
-        console.log('resp', resp);
-
         if (resp.type == 'mempool') {
           this.setState({ UTXOs: resp.data[0].out });
         }
@@ -130,7 +127,6 @@ class WatchAddress extends React.Component {
         <PopupDiv className={visible ? 'on' : 'off'}>
           {amount && <Message amount={amount} text={this.props.text} />}
         </PopupDiv>
-        <button onClick={this.toggle}>click me</button>
       </div>
     );
   }
