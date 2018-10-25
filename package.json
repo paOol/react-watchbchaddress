@@ -34,11 +34,11 @@
   },
   "homepage": "https://github.com/paOol/react-watchbchaddress#readme",
   "devDependencies": {
-    "babel-cli": "^6.26.0",
-    "babel-core": "^6.26.3",
-    "babel-loader": "^7.1.4",
-    "babel-preset-env": "^1.7.0",
-    "babel-preset-react": "^6.24.1",
+    "@babel/core": "^7.1.2",
+    "@babel/plugin-proposal-class-properties": "^7.1.0",
+    "@babel/preset-env": "^7.1.0",
+    "@babel/preset-react": "^7.0.0",
+    "babel-loader": "^8.0.4",
     "css-loader": "^1.0.0",
     "html-webpack-plugin": "^3.2.0",
     "react": "^16.5.2",
@@ -49,6 +49,7 @@
     "webpack-dev-server": "^3.1.9"
   },
   "dependencies": {
+    "@babel/polyfill": "^7.0.0",
     "axios": "^0.18.0",
     "styled-components": "^4.0.1"
   }
