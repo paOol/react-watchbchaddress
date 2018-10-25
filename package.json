@@ -51,6 +51,7 @@
   "dependencies": {
     "@babel/polyfill": "^7.0.0",
     "axios": "^0.18.0",
+    "bitbox-sdk": "^2.0.4",
     "styled-components": "^4.0.1"
   }
 }

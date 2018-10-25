@@ -2,66 +2,65 @@ import React from 'react';
 import styled from 'styled-components';
 import '@babel/polyfill';
 
+let BITBOXSDK = require('bitbox-sdk/lib/bitbox-sdk').default;
+let BITBOX = new BITBOXSDK();
+
 const EventSource = require('eventsource');
-let bchAddress = `qrv8w60f40yjhqzfswyc39n78anxjhcx75ppt2df5c`;
-//"out.e.a": bchAddress
+
+//let bchAddress = `1NoYQso5UF6XqC4NbjKAp2EnjJ59yLNn74`;
+let bchAddress = `bitcoincash:qrv8w60f40yjhqzfswyc39n78anxjhcx75ppt2df5c`;
+//
+//
 class WatchAddress extends React.Component {
-  constructor(props) {
-    super(props);
-    this.state = { bchAddress: '', UTXOs: '', satoshis: '', visible: false };
+  state = {
+    bchAddress: '',
+    UTXOs: '',
+    satoshis: '',
+    visible: false,
+    err: ''
+  };
 
-    this.getUTXOs = this.getUTXOs.bind(this);
-    this.reveal = this.reveal.bind(this);
-    this.hide = this.hide.bind(this);
-  }
-
-  getTransaction() {
-    alert('asdf');
-  }
-
-  getUTXOs() {
-    let output = [
-      {
-        i: 0,
-        b0: { op: 118 },
-        b1: { op: 169 },
-        b2: 'kxno9vsBxx0F3OKZ1HnQEwOQOy8=',
-        s2: '�\u0019���\u0001�\u001d\u0005���y�\u0013\u0003�;/',
-        b3: { op: 136 },
-        b4: { op: 172 },
-        str:
-          'OP_DUP OP_HASH160 9319e8f6fb01c71d05dce299d479d01303903b2f OP_EQUALVERIFY OP_CHECKSIG',
-        e: {
-          v: 22814382,
-          i: 0,
-          a: 'qzf3n68klvquw8g9mn3fn4re6qfs8ypm9uq89uvwpr'
-        },
-        h2: '9319e8f6fb01c71d05dce299d479d01303903b2f'
-      },
-      {
-        i: 1,
-        b0: { op: 118 },
-        b1: { op: 169 },
-        b2: '1R9qPZt03a7/oEu/KIeEkNtrqeQ=',
-        s2: '�\u001fj=�tݮ��K�(����k��',
-        b3: { op: 136 },
-        b4: { op: 172 },
-        str:
-          'OP_DUP OP_HASH160 d51f6a3d9b74ddaeffa04bbf28878490db6ba9e4 OP_EQUALVERIFY OP_CHECKSIG',
-        e: {
-          v: 1051241,
-          i: 1,
-          a: 'qr23763and6dmthl5p9m72y8sjgdk6afusp2gqqmfw'
-        },
-        h2: 'd51f6a3d9b74ddaeffa04bbf28878490db6ba9e4'
-      }
-    ];
+  getUTXOs = output => {
+    // let output = [
+    //   {
+    //     i: 0,
+    //     b0: { op: 118 },
+    //     b1: { op: 169 },
+    //     b2: 'kxno9vsBxx0F3OKZ1HnQEwOQOy8=',
+    //     s2: '�\u0019���\u0001�\u001d\u0005���y�\u0013\u0003�;/',
+    //     b3: { op: 136 },
+    //     b4: { op: 172 },
+    //     str:
+    //       'OP_DUP OP_HASH160 9319e8f6fb01c71d05dce299d479d01303903b2f OP_EQUALVERIFY OP_CHECKSIG',
+    //     e: {
+    //       v: 22814382,
+    //       i: 0,
+    //       a: 'qzf3n68klvquw8g9mn3fn4re6qfs8ypm9uq89uvwpr'
+    //     },
+    //     h2: '9319e8f6fb01c71d05dce299d479d01303903b2f'
+    //   },
+    //   {
+    //     i: 1,
+    //     b0: { op: 118 },
+    //     b1: { op: 169 },
+    //     b2: '1R9qPZt03a7/oEu/KIeEkNtrqeQ=',
+    //     s2: '�\u001fj=�tݮ��K�(����k��',
+    //     b3: { op: 136 },
+    //     b4: { op: 172 },
+    //     str:
+    //       'OP_DUP OP_HASH160 d51f6a3d9b74ddaeffa04bbf28878490db6ba9e4 OP_EQUALVERIFY OP_CHECKSIG',
+    //     e: {
+    //       v: 1051241,
+    //       i: 1,
+    //       a: 'qr23763and6dmthl5p9m72y8sjgdk6afusp2gqqmfw'
+    //     },
+    //     h2: 'd51f6a3d9b74ddaeffa04bbf28878490db6ba9e4'
+    //   }
+    // ];
 
     console.log('in get utxos outputs', output);
 
-    const result = output.find(
-      x => x.e.a === 'qzf3n68klvquw8g9mn3fn4re6qfs8ypm9uq89uvwpr'
-    );
+    const result = output.find(x => x.e.a === this.state.bchAddress);
 
     console.log('results', result, typeof result);
     if (result && result.e) {
@@ -72,40 +71,63 @@ class WatchAddress extends React.Component {
       });
     }
     return;
-  }
+  };
 
   //positioning css
 
   // bchaddress sanitize
+  sanitizeAddress = async string => {
+    let valid, sanitized;
+    try {
+      valid = await BITBOX.Address.isMainnetAddress(string);
+    } catch (e) {
+      console.log('failed', e);
+      this.setState({
+        err: 'Not a valid Bitcoin Cash address.'
+      });
+    }
+
+    if (valid) {
+      sanitized = await BITBOX.Address.toCashAddress(string, false);
+      this.setState({
+        bchAddress: sanitized
+      });
+    }
+
+    console.log('string', string);
+    console.log('valid', valid);
+  };
 
   // display smart value
 
   // componentDidUpdate(prevProps, prevState) {
   //   if (this.props.routes !== prevProps.routes) {
-  async reveal() {
+  reveal = async () => {
     return this.setState({
       visible: true
     });
-  }
-  async hide() {
+  };
+  hide = () => {
     return setTimeout(() => {
       this.setState({
         visible: false
       });
-    }, 200);
-  }
-  async componentDidUpdate(prevProps, prevState) {
-    console.log('prevState', prevState);
-    console.log('this.state', this.state);
+    }, 4000);
+  };
 
+  componentDidUpdate = async (prevProps, prevState) => {
     if (prevState.UTXOs !== this.state.UTXOs) {
-      console.log('comp updated');
       console.log('state changed  ', this.state.UTXOs);
       let UTXOs = this.getUTXOs(this.state.UTXOs);
+      await this.reveal();
+      await this.hide();
     }
-  }
-  async componentDidMount() {
-    var query = { v: 3, q: { find: {} } };
+  };
+
+  componentDidMount = async () => {
+    await this.sanitizeAddress(bchAddress);
+    //var query = { v: 3, q: { find: {} } };
+    var query = { v: 3, q: { find: { 'out.e.a': this.state.bchAddress } } };
     query = btoa(JSON.stringify(query));
     let bitsocket = new EventSource(`https://bitsocket.org/s/${query}`);
 
@@ -113,26 +135,36 @@ class WatchAddress extends React.Component {
       let resp = JSON.parse(e.data);
       if (resp.data.length >= 1) {
         console.log('resp', resp);
-        this.setState({ UTXOs: resp.data[0].out });
+
+        if (resp.type == 'mempool') {
+          this.setState({ UTXOs: resp.data[0].out });
+        }
+        // type == block for confirmed txs
       }
     };
-  }
+  };
 
   componentWillUnmount() {
     bitsocket.close();
   }
+
   render() {
     return (
-      <PopupDiv>
-        <div onClick={this.getTransaction}>asdf</div>
-        {this.state.satoshis && (
-          <div>
-            {' '}
-            {this.state.satoshis}
-            satoshis: deposited{' '}
+      <div>
+        {this.state.err ? this.state.err : ''}
+        <PopupDiv>
+          <div className={this.state.visible ? 'on' : 'off'}>
+            asdf
+            {this.state.satoshis && (
+              <div>
+                {' '}
+                {this.state.satoshis}
+                satoshis: deposited{' '}
+              </div>
+            )}
           </div>
-        )}
-      </PopupDiv>
+        </PopupDiv>
+      </div>
     );
   }
 }
@@ -176,7 +208,11 @@ const PopupDiv = styled.div`
   //     -moz-transform: translateY(0px);
   //   }
   // }
-  &.isOpen {
+  .off {
+    background: green;
+  }
+  .on {
+    background: blue;
   }
 `;
 export default WatchAddress;
