@@ -104,6 +104,7 @@ class WatchAddress extends React.Component {
   //   if (this.props.routes !== prevProps.routes) {
   reveal = async () => {
     return this.setState({
+      satoshis: 600,
       visible: true
     });
   };
@@ -112,22 +113,26 @@ class WatchAddress extends React.Component {
       this.setState({
         visible: false
       });
-    }, 4000);
+    }, 3000);
+  };
+
+  toggle = async () => {
+    await this.reveal();
+    await this.hide();
   };
 
   componentDidUpdate = async (prevProps, prevState) => {
     if (prevState.UTXOs !== this.state.UTXOs) {
       console.log('state changed  ', this.state.UTXOs);
       let UTXOs = this.getUTXOs(this.state.UTXOs);
-      await this.reveal();
-      await this.hide();
+      this.toggle();
     }
   };
 
   componentDidMount = async () => {
     await this.sanitizeAddress(bchAddress);
-    //var query = { v: 3, q: { find: {} } };
-    var query = { v: 3, q: { find: { 'out.e.a': this.state.bchAddress } } };
+    var query = { v: 3, q: { find: {} } };
+    // var query = { v: 3, q: { find: { 'out.e.a': this.state.bchAddress } } };
     query = btoa(JSON.stringify(query));
     let bitsocket = new EventSource(`https://bitsocket.org/s/${query}`);
 
@@ -139,7 +144,7 @@ class WatchAddress extends React.Component {
         if (resp.type == 'mempool') {
           this.setState({ UTXOs: resp.data[0].out });
         }
-        // type == block for confirmed txs
+        // resp.type == block for confirmed txs
       }
     };
   };
@@ -152,67 +157,90 @@ class WatchAddress extends React.Component {
     return (
       <div>
         {this.state.err ? this.state.err : ''}
-        <PopupDiv>
-          <div className={this.state.visible ? 'on' : 'off'}>
+        <PopupDiv className={this.state.visible ? 'on' : 'off'}>
+          <div>
             asdf
             {this.state.satoshis && (
               <div>
                 {' '}
                 {this.state.satoshis}
-                satoshis: deposited{' '}
+                &nbsp; satoshis deposited{' '}
               </div>
             )}
           </div>
         </PopupDiv>
+        <button onClick={this.toggle}>click me</button>
       </div>
     );
   }
 }
 const PopupDiv = styled.div`
-  //position: absolute;
-  z-index: 101;
-  color: red;
-  // top: 0;
-  // left: 0;
-  // right: 0;
-  background: #fde073;
-  // text-align: center;
-  // line-height: 2.5;
-  // overflow: hidden;
-  // -webkit-box-shadow: 0 0 5px black;
-  // -moz-box-shadow: 0 0 5px black;
-  // box-shadow: 0 0 5px black;
+  visibility: hidden;
+  min-width: 250px;
+  margin-left: -125px;
+  box-sizing: border-box;
+  font-weight: 400;
+  border-radius: 6px;
+  -webkit-box-shadow: 2px 2px 10px 2px hsla(0, 0%, 60%, 0.2);
+  box-shadow: 2px 2px 10px 2px hsla(0, 0%, 60%, 0.2);
+  background-color: #fff;
+  color: #808080;
+  text-align: center;
+  padding: 1rem 0.3rem;
+  position: fixed;
+  z-index: 1;
+  left: 50%;
+  top: 2rem;
+  font-size: 1rem;
 
-  // -webkit-transform: translateY(-50px);
-  // -webkit-animation: slideDown 2.5s 1s 1 ease forwards;
-  // -moz-transform: translateY(-50px);
-  // -moz-animation: slideDown 2.5s 1s 1 ease forwards;
-
-  // @-webkit-keyframes slideDown {
-  //   0%,
-  //   100% {
-  //     -webkit-transform: translateY(-50px);
-  //   }
-  //   10%,
-  //   90% {
-  //     -webkit-transform: translateY(0px);
-  //   }
-  // }
-  // @-moz-keyframes slideDown {
-  //   0%,
-  //   100% {
-  //     -moz-transform: translateY(-50px);
-  //   }
-  //   10%,
-  //   90% {
-  //     -moz-transform: translateY(0px);
-  //   }
-  // }
-  .off {
-    background: green;
+  &.on {
+    visibility: visible;
+    -webkit-animation: fadein 0.5s, fadeout 0.5s 2.5s;
+    animation: fadein 0.5s, fadeout 0.5s 2.5s;
   }
-  .on {
-    background: blue;
+
+  @-webkit-keyframes fadein {
+    from {
+      top: 0;
+      opacity: 0;
+    }
+    to {
+      top: 2rem;
+      opacity: 1;
+    }
+  }
+
+  @keyframes fadein {
+    from {
+      top: 0;
+      opacity: 0;
+    }
+    to {
+      top: 2rem;
+      opacity: 1;
+    }
+  }
+
+  @-webkit-keyframes fadeout {
+    from {
+      top: 2rem;
+      opacity: 1;
+    }
+    to {
+      top: 0;
+      opacity: 0;
+    }
+  }
+
+  @keyframes fadeout {
+    from {
+      top: 2rem;
+      opacity: 1;
+    }
+    to {
+      top: 0;
+      opacity: 0;
+    }
   }
 `;
 export default WatchAddress;
