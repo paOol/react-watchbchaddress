@@ -19,11 +19,13 @@ npm i react-watchbchaddress
   import WatchAddress from 'react-watchbchaddress';
 
   <WatchAddress
-    address="bch:asdf"
-    callbackPath=""
+    address="bitcoincash:qrv8w60f40yjhqzfswyc39n78anxjhcx75ppt2df5c"
+    text="You have deposited"
   />
 ```
 
 ### Notes
 
-It's possible to watch several addresses by passing in an array, but that is not the purpose of this component. It's use case is when a user of your app is signed in and deposits and you want to display the live event to them.
+It's possible to watch several addresses by passing in an array, but that is not the purpose of this component.
+
+You can contribute if you'd like. Having more customizable props such as the position of the notification, styling, etc would make this component much more useful.

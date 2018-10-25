@@ -7,57 +7,17 @@ let BITBOX = new BITBOXSDK();
 
 const EventSource = require('eventsource');
 
-//let bchAddress = `1NoYQso5UF6XqC4NbjKAp2EnjJ59yLNn74`;
-let bchAddress = `bitcoincash:qrv8w60f40yjhqzfswyc39n78anxjhcx75ppt2df5c`;
-//
-//
 class WatchAddress extends React.Component {
   state = {
     bchAddress: '',
     UTXOs: '',
     satoshis: '',
+    amount: '',
     visible: false,
     err: ''
   };
 
-  getUTXOs = output => {
-    // let output = [
-    //   {
-    //     i: 0,
-    //     b0: { op: 118 },
-    //     b1: { op: 169 },
-    //     b2: 'kxno9vsBxx0F3OKZ1HnQEwOQOy8=',
-    //     s2: '�\u0019���\u0001�\u001d\u0005���y�\u0013\u0003�;/',
-    //     b3: { op: 136 },
-    //     b4: { op: 172 },
-    //     str:
-    //       'OP_DUP OP_HASH160 9319e8f6fb01c71d05dce299d479d01303903b2f OP_EQUALVERIFY OP_CHECKSIG',
-    //     e: {
-    //       v: 22814382,
-    //       i: 0,
-    //       a: 'qzf3n68klvquw8g9mn3fn4re6qfs8ypm9uq89uvwpr'
-    //     },
-    //     h2: '9319e8f6fb01c71d05dce299d479d01303903b2f'
-    //   },
-    //   {
-    //     i: 1,
-    //     b0: { op: 118 },
-    //     b1: { op: 169 },
-    //     b2: '1R9qPZt03a7/oEu/KIeEkNtrqeQ=',
-    //     s2: '�\u001fj=�tݮ��K�(����k��',
-    //     b3: { op: 136 },
-    //     b4: { op: 172 },
-    //     str:
-    //       'OP_DUP OP_HASH160 d51f6a3d9b74ddaeffa04bbf28878490db6ba9e4 OP_EQUALVERIFY OP_CHECKSIG',
-    //     e: {
-    //       v: 1051241,
-    //       i: 1,
-    //       a: 'qr23763and6dmthl5p9m72y8sjgdk6afusp2gqqmfw'
-    //     },
-    //     h2: 'd51f6a3d9b74ddaeffa04bbf28878490db6ba9e4'
-    //   }
-    // ];
-
+  getUTXOs = async output => {
     console.log('in get utxos outputs', output);
 
     const result = output.find(x => x.e.a === this.state.bchAddress);
@@ -73,15 +33,11 @@ class WatchAddress extends React.Component {
     return;
   };
 
-  //positioning css
-
-  // bchaddress sanitize
   sanitizeAddress = async string => {
     let valid, sanitized;
     try {
       valid = await BITBOX.Address.isMainnetAddress(string);
     } catch (e) {
-      console.log('failed', e);
       this.setState({
         err: 'Not a valid Bitcoin Cash address.'
       });
@@ -93,18 +49,10 @@ class WatchAddress extends React.Component {
         bchAddress: sanitized
       });
     }
-
-    console.log('string', string);
-    console.log('valid', valid);
   };
 
-  // display smart value
-
-  // componentDidUpdate(prevProps, prevState) {
-  //   if (this.props.routes !== prevProps.routes) {
   reveal = async () => {
     return this.setState({
-      satoshis: 600,
       visible: true
     });
   };
@@ -124,15 +72,18 @@ class WatchAddress extends React.Component {
   componentDidUpdate = async (prevProps, prevState) => {
     if (prevState.UTXOs !== this.state.UTXOs) {
       console.log('state changed  ', this.state.UTXOs);
-      let UTXOs = this.getUTXOs(this.state.UTXOs);
+      let UTXOs = await this.getUTXOs(this.state.UTXOs);
+      if (this.state.satoshis) {
+        this.getValue(this.state.satoshis);
+      }
       this.toggle();
     }
   };
 
   componentDidMount = async () => {
-    await this.sanitizeAddress(bchAddress);
-    var query = { v: 3, q: { find: {} } };
-    // var query = { v: 3, q: { find: { 'out.e.a': this.state.bchAddress } } };
+    await this.sanitizeAddress(this.props.address);
+    //var query = { v: 3, q: { find: {} } };
+    var query = { v: 3, q: { find: { 'out.e.a': this.state.bchAddress } } };
     query = btoa(JSON.stringify(query));
     let bitsocket = new EventSource(`https://bitsocket.org/s/${query}`);
 
@@ -152,32 +103,61 @@ class WatchAddress extends React.Component {
   componentWillUnmount() {
     bitsocket.close();
   }
+  getValue = async satoshis => {
+    let val;
+
+    if (satoshis >= 1000000) {
+      val = await BITBOX.BitcoinCash.toBitcoinCash(satoshis);
+      console.log('in val', val, typeof val);
+      val = `${val} BCH`;
+    } else {
+      satoshis = satoshis.toLocaleString();
+      val = `${satoshis} satoshis`;
+    }
+
+    this.setState({
+      amount: val
+    });
+    // let price = await BITBOX.Price.current('usd');
+    // console.log('price here', price);
+  };
 
   render() {
+    let { err, visible, satoshis, amount } = this.state;
     return (
       <div>
-        {this.state.err ? this.state.err : ''}
-        <PopupDiv className={this.state.visible ? 'on' : 'off'}>
-          <div>
-            asdf
-            {this.state.satoshis && (
-              <div>
-                {' '}
-                {this.state.satoshis}
-                &nbsp; satoshis deposited{' '}
-              </div>
-            )}
-          </div>
+        {err ? err : ''}
+        <PopupDiv className={visible ? 'on' : 'off'}>
+          {amount && <Message amount={amount} text={this.props.text} />}
         </PopupDiv>
         <button onClick={this.toggle}>click me</button>
       </div>
     );
   }
 }
+
+const Message = props => (
+  <Msg className="features">
+    <p>
+      {props.text} <span>{props.amount}</span>
+    </p>
+  </Msg>
+);
+
+const Msg = styled.div`
+  p {
+    word-break: break-word;
+    hyphens: auto;
+    overflow-wrap: break-word;
+  }
+  span {
+    font-weight: 700;
+  }
+`;
 const PopupDiv = styled.div`
   visibility: hidden;
   min-width: 250px;
-  margin-left: -125px;
+  margin-left: 0;
   box-sizing: border-box;
   font-weight: 400;
   border-radius: 6px;
@@ -188,8 +168,7 @@ const PopupDiv = styled.div`
   text-align: center;
   padding: 1rem 0.3rem;
   position: fixed;
-  z-index: 1;
-  left: 50%;
+  z-index: 1111;
   top: 2rem;
   font-size: 1rem;
 
