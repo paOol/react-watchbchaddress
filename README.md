@@ -24,6 +24,17 @@ npm i react-watchbchaddress
   />
 ```
 
+### Development
+
+```
+git clone https://github.com/paOol/react-watchbchaddress
+cd react-watchbchaddress
+npm i
+npm run start
+```
+
+then browse to http://localhost:3001
+
 ### Notes
 
 It's possible to watch several addresses by passing in an array, but that is not the purpose of this component.
