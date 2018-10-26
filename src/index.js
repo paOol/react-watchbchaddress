@@ -18,15 +18,12 @@ class WatchAddress extends React.Component {
   };
 
   getUTXOs = async output => {
-    console.log('in get utxos outputs', output);
-
     const result = output.find(x => x.e.a === this.state.bchAddress);
 
-    console.log('results', result, typeof result);
     if (result && result.e) {
       let satoshis = result.e.v;
+
       this.setState({
-        visible: true,
         satoshis: satoshis
       });
     }
@@ -61,7 +58,7 @@ class WatchAddress extends React.Component {
       this.setState({
         visible: false
       });
-    }, 3000);
+    }, 3500);
   };
 
   toggle = async () => {
@@ -81,8 +78,7 @@ class WatchAddress extends React.Component {
 
   componentDidMount = async () => {
     await this.sanitizeAddress(this.props.address);
-    //var query = { v: 3, q: { find: {} } };
-    var query = { v: 3, q: { find: { 'out.e.a': this.state.bchAddress } } };
+    let query = { v: 3, q: { find: { 'out.e.a': this.state.bchAddress } } };
     query = btoa(JSON.stringify(query));
     let bitsocket = new EventSource(`https://bitsocket.org/s/${query}`);
 
@@ -100,12 +96,11 @@ class WatchAddress extends React.Component {
   componentWillUnmount() {
     bitsocket.close();
   }
+
   getValue = async satoshis => {
     let val;
-
     if (satoshis >= 1000000) {
       val = await BITBOX.BitcoinCash.toBitcoinCash(satoshis);
-      console.log('in val', val, typeof val);
       val = `${val} BCH`;
     } else {
       satoshis = satoshis.toLocaleString();
@@ -133,7 +128,7 @@ class WatchAddress extends React.Component {
 }
 
 const Message = props => (
-  <Msg className="features">
+  <Msg>
     <p>
       {props.text} <span>{props.amount}</span>
     </p>
@@ -162,7 +157,7 @@ const PopupDiv = styled.div`
   background-color: #fff;
   color: #808080;
   text-align: center;
-  padding: 1rem 0.3rem;
+  padding: 0.8rem 0.7rem;
   position: fixed;
   z-index: 1111;
   top: 2rem;
@@ -170,8 +165,8 @@ const PopupDiv = styled.div`
 
   &.on {
     visibility: visible;
-    -webkit-animation: fadein 0.5s, fadeout 0.5s 2.5s;
-    animation: fadein 0.5s, fadeout 0.5s 2.5s;
+    -webkit-animation: fadein 0.4s, fadeout 0.5s 3s;
+    animation: fadein 0.4s, fadeout 0.5s 3s;
   }
 
   @-webkit-keyframes fadein {
