@@ -2,8 +2,7 @@
 
 ## React component for watching transactions to a specified address
 
-<!-- ![badgercashid](https://user-images.githubusercontent.com/5941389/47131161-0a7e4a00-d252-11e8-979c-3f10ac90a809.gif)
- -->
+![watchbchaddress](https://user-images.githubusercontent.com/5941389/47537254-86434c80-d879-11e8-9682-20365e3521ae.gif)
 
 ## Installation
 
@@ -15,6 +14,8 @@ npm i react-watchbchaddress
 
 ## Usage
 
+You can set the address to watch and the message. One case can be when a user deposits bch to their account on your web app.
+
 ```
   import WatchAddress from 'react-watchbchaddress';
 
@@ -23,6 +24,10 @@ npm i react-watchbchaddress
     text="You have deposited"
   />
 ```
+
+The value will display as satoshis if the value is "low". Otherwise, it will display as BCH.
+
+![satoshis](https://user-images.githubusercontent.com/5941389/47537241-70ce2280-d879-11e8-9400-27eae7f0cd45.gif)
 
 ### Development
 
