@@ -22,8 +22,27 @@ You can set the address to watch and the message. One case can be when a user de
   <WatchAddress
     address="bitcoincash:qrv8w60f40yjhqzfswyc39n78anxjhcx75ppt2df5c"
     text="You have deposited"
+    callbackPath="api/test"
   />
 ```
+
+the callback will POST the transaction object to the endpoint specified.
+An example body would look like
+
+```
+[ {
+    tx:
+     {
+      h: '1237cc09307fc8b4073942884c1f7047f23676497834c4846c25a14cd2fe986'
+     },
+    in: [ [Object] ],
+    out: [ [Object], [Object] ],
+    _id: '12d3b329223c3f002edcc881'
+  }
+]
+
+```
+
 
 The value will display as satoshis if the value is "low". Otherwise, it will display as BCH.
 

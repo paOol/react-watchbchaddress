@@ -1,4 +1,5 @@
 import React from 'react';
+import axios from 'axios';
 import styled from 'styled-components';
 import '@babel/polyfill';
 
@@ -6,6 +7,7 @@ let BITBOXSDK = require('bitbox-sdk/lib/bitbox-sdk').default;
 let BITBOX = new BITBOXSDK();
 
 const EventSource = require('eventsource');
+var bitsocket;
 
 class WatchAddress extends React.Component {
   state = {
@@ -48,7 +50,7 @@ class WatchAddress extends React.Component {
     }
   };
 
-  reveal = async () => {
+  reveal = () => {
     return this.setState({
       visible: true
     });
@@ -79,13 +81,17 @@ class WatchAddress extends React.Component {
   componentDidMount = async () => {
     await this.sanitizeAddress(this.props.address);
     let query = { v: 3, q: { find: { 'out.e.a': this.state.bchAddress } } };
+    // let query = { v: 3, q: { find: {} } };
     query = btoa(JSON.stringify(query));
-    let bitsocket = new EventSource(`https://bitsocket.org/s/${query}`);
+    bitsocket = new EventSource(`https://bitsocket.org/s/${query}`);
 
     bitsocket.onmessage = e => {
       let resp = JSON.parse(e.data);
       if (resp.data.length >= 1) {
         if (resp.type == 'mempool') {
+          if (this.props.callbackPath) {
+            this.callBack(this.props.callbackPath, resp.data);
+          }
           this.setState({ UTXOs: resp.data[0].out });
         }
         // resp.type == block for confirmed txs
@@ -94,6 +100,7 @@ class WatchAddress extends React.Component {
   };
 
   componentWillUnmount() {
+    console.log('component will unmount');
     bitsocket.close();
   }
 
@@ -112,6 +119,25 @@ class WatchAddress extends React.Component {
     });
     // let price = await BITBOX.Price.current('usd');
     // console.log('price here', price);
+  };
+
+  callBack = (path, data) => {
+    return axios
+      .post(path, data)
+      .then(x => {
+        console.log('callback response', x);
+      })
+      .catch(e => {
+        console.log('err', e);
+        this.setState({
+          visible: true,
+          err: `Error with callback: ${e.response.status} ${
+            e.response.statusText
+          }`
+        });
+
+        bitsocket.close();
+      });
   };
 
   render() {
