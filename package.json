@@ -1,6 +1,6 @@
 {
   "name": "react-watchbchaddress",
-  "version": "0.1.1",
+  "version": "0.2.0",
   "description": "notification component for watching transactions to a specified address",
   "main": "dist/index.js",
   "scripts": {
